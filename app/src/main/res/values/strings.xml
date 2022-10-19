@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">FuelApp</string>
+    <string name="welcome">Welcome Back</string>
+    <string-array name="regSpinnerItems">
+        <item>Vehicle Owner</item>
+        <item>Shed Owner</item>
+    </string-array>
+</resources>

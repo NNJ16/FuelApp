@@ -119,8 +119,14 @@ public class LoginActivity extends AppCompatActivity {
 
     //navigate to main page
     private void goToMain(User user) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("USER_INFO", user);
-        startActivity(intent);
+        if(user.getType().equals("user")){
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("USER_INFO", user);
+            startActivity(intent);
+        }else{
+            Intent intent = new Intent(this, AdminActivity.class);
+            intent.putExtra("USER_INFO", user);
+            startActivity(intent);
+        }
     }
 }

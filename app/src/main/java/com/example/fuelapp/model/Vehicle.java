@@ -7,7 +7,7 @@ public class Vehicle {
 
     public Vehicle(String userId, String vehicleNo, String vehicleType) {
         this.userId = userId;
-        vehicleNo = vehicleNo;
+        this.vehicleNo = vehicleNo;
         this.vehicleType = vehicleType;
     }
 

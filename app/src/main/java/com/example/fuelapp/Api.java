@@ -12,7 +12,9 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.HTTP;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 
@@ -74,5 +76,13 @@ public interface Api {
     //Get Owners Vehicles
     @POST("vehicle/find")
     Call<List<Vehicle>> getVehicleByUserId(@Body User user);
+
+    //Create a Vehicle
+    @POST("vehicle/create")
+    Call<Vehicle> createVehicle(@Body Vehicle vehicle);
+
+    //Create a Vehicle
+    @POST("vehicle/delete")
+    Call<Vehicle> deleteVehicle(@Body Vehicle vehicle);
 
 }

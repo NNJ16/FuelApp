@@ -1,13 +1,16 @@
 package com.example.fuelapp;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -26,6 +29,7 @@ import com.example.fuelapp.model.QueueStatus;
 import com.example.fuelapp.model.Shed;
 import com.example.fuelapp.model.User;
 import com.example.fuelapp.model.Vehicle;
+import com.google.gson.Gson;
 
 import java.util.Date;
 import java.util.List;
@@ -38,13 +42,14 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
     TextView lblUser;
     AutoCompleteTextView txtShedList;
-    ImageView imgAdd;
+    ImageView imgAdd, imgRemove;
     TextView lblDiesel, lblPetrol, lblBike,lblCar, lblTruck, lblBus, lblVan, lblThreeWheel;
     User user;
     Spinner cmbVehicles;
     Button btnJoin, btnExitBP, btnExitAP;
     String vehicleType="";
-    Queue joinedQueue = null;
+    static Queue joinedQueue = null;
+    static String[] vehicleList=null;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         btnExitAP = findViewById(R.id.btnEAP);
         btnExitBP = findViewById(R.id.btnExitBP);
         imgAdd = findViewById(R.id.imgAdd);
+        imgRemove = findViewById(R.id.imgRemove);
 
         btnJoin.setEnabled(false);
         btnExitAP.setEnabled(false);
@@ -99,36 +105,159 @@ public class MainActivity extends AppCompatActivity {
         btnJoin.setOnClickListener(view -> joinQueue());
         btnExitBP.setOnClickListener(view -> exitBeforePumpQueue());
         btnExitAP.setOnClickListener(view -> exitAfterPumpQueue());
-        imgAdd.setOnClickListener(view -> addVehicle());
+        imgAdd.setOnClickListener(view -> showAddVehicleDialog());
+        imgRemove.setOnClickListener(view -> {
+            if(vehicleList != null){
+                showRemoveVehicleDialog();
+            }else{
+                Toast.makeText(getApplicationContext(), "No vehicles to remove.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
-    private  String m_Text = "";
 
-    private void addVehicle(){
-
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle("Enter Date");
+    //Implement add vehicle dialog view
+    private void showAddVehicleDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setTitle("Enter Vehicle Details");
+        String[] vehicles = new String[]{"Bike","Car","ThreeWheel","Van","Bus","Truck" };
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, vehicles);
 
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(32, 0, 32, 0);
+        lp.setMargins(55, 10, 55, 10);
         final EditText input = new EditText(this);
-        input.setLayoutParams(lp);
+        final Spinner spinner = new Spinner(this);
+        final TextView lblText = new TextView(this);
+        final TextView paddingText = new TextView(this);
+        final TextView paddingText1 = new TextView(this);
+        final Button button = new Button(this);
+        final Button button1 = new Button(this);
+
         input.setGravity(android.view.Gravity.TOP|android.view.Gravity.LEFT);
         input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setHint("Enter vehicle no");
+        input.setPadding(24,16,16,24);
+        input.setBackground(ContextCompat.getDrawable(this, R.drawable.search_background));
         input.setLines(1);
         input.setMaxLines(1);
-        container.addView(input, lp);
+        lblText.setText(" Select vehicle type");
+        lblText.setTextColor(Color.parseColor("#000000"));
+        button.setText("ADD VEHICLE");
+        button1.setText("CANCEL");
 
+        spinner.setGravity(android.view.Gravity.TOP|android.view.Gravity.LEFT);
+        spinner.setBackground(ContextCompat.getDrawable(this, R.drawable.orange_color_background));
+        spinner.setAdapter(adapter);
+        container.addView(paddingText, lp);
+        container.addView(input, lp);
+        container.addView(lblText, lp);
+        container.addView(spinner, lp);
+        container.addView(button, lp);
+        container.addView(button1, lp);
+        container.addView(paddingText1, lp);
         alertDialog.setView(container);
+
+        button.setOnClickListener(v -> addVehicle(input.getText().toString(), spinner.getSelectedItem().toString(), alertDialog));
+        button1.setOnClickListener(v -> alertDialog.dismiss());
 
         alertDialog.show();
 
     }
 
+    //Implement add vehicle dialog view
+    private void showRemoveVehicleDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setTitle("Remove Vehicle Details");
+        String[] vehicles = new String[]{"Bike","Car","ThreeWheel","Van","Bus","Truck" };
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, vehicleList);
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(55, 10, 55, 10);
+        final Spinner spinner = new Spinner(this);
+        final TextView lblText = new TextView(this);
+        final TextView paddingText = new TextView(this);
+        final TextView paddingText1 = new TextView(this);
+        final Button button = new Button(this);
+        final Button button1 = new Button(this);
+
+        lblText.setText(" Select your vehicle");
+        lblText.setTextColor(Color.parseColor("#000000"));
+        button.setText("REMOVE VEHICLE");
+        button1.setText("CANCEL");
+
+        spinner.setGravity(android.view.Gravity.TOP|android.view.Gravity.LEFT);
+        spinner.setBackground(ContextCompat.getDrawable(this, R.drawable.orange_color_background));
+        spinner.setAdapter(adapter);
+        container.addView(paddingText, lp);
+        container.addView(lblText, lp);
+        container.addView(spinner, lp);
+        container.addView(button, lp);
+        container.addView(button1, lp);
+        container.addView(paddingText1, lp);
+        alertDialog.setView(container);
+
+        button.setOnClickListener(v -> removeVehicle(spinner.getSelectedItem().toString().split(",")[1].trim(), alertDialog));
+        button1.setOnClickListener(v -> alertDialog.dismiss());
+
+        alertDialog.show();
+
+    }
+
+    //Initialize required services
     private void initializeServices(){
         getAllSheds();
         getVehicles();
+    }
+
+    // add vehicle for the user
+    private void addVehicle(String vehicleNo, String vehicleType, AlertDialog alertDialog){
+        Call<Vehicle> call = RetrofitClient.getInstance().getMyApi().createVehicle(new Vehicle(user.getId(), vehicleNo, vehicleType));
+
+        call.enqueue(new Callback<Vehicle>() {
+            @Override
+            public void onResponse(Call<Vehicle> call, Response<Vehicle> response) {
+                Vehicle vehicle = response.body();
+                if(vehicle != null){
+                    getVehicles();
+                    alertDialog.dismiss();
+                }else{
+                    Toast.makeText(getApplicationContext(), "Unable to add the vehicle.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Vehicle> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // remove vehicle from the user
+    private void removeVehicle(String vehicleNo, AlertDialog alertDialog){
+        Call<Vehicle> call = RetrofitClient.getInstance().getMyApi().deleteVehicle(new Vehicle(user.getId(), vehicleNo, ""));
+
+        call.enqueue(new Callback<Vehicle>() {
+            @Override
+            public void onResponse(Call<Vehicle> call, Response<Vehicle> response) {
+                Vehicle vehicle = response.body();
+                if(vehicle != null){
+                    getVehicles();
+                    alertDialog.dismiss();
+                }else{
+                    Toast.makeText(getApplicationContext(), "Unable to delete the vehicle.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Vehicle> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     //Get All shed Details
@@ -154,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //set values for shed list combo
     public void setTxtShedList(String[] arr){
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.select_dialog_item, arr);
         txtShedList.setThreshold(2);
@@ -171,8 +301,18 @@ public class MainActivity extends AppCompatActivity {
                 if(fuelList.size() != 0){
                     for (Fuel fuel: fuelList) {
                         if(fuel.getFuelType().equalsIgnoreCase("Petrol")){
+                            if(Integer.parseInt(fuel.getFuelStatus()) >= 1000){
+                                lblPetrol.setTextColor(Color.parseColor("#045c23"));
+                            }else{
+                                lblPetrol.setTextColor(Color.parseColor("#eb4034"));
+                            }
                             lblPetrol.setText(fuel.getFuelStatus());
                         }else if(fuel.getFuelType().equalsIgnoreCase("Diesel")){
+                            if(Integer.parseInt(fuel.getFuelStatus()) >= 1000){
+                                lblDiesel.setTextColor(Color.parseColor("#045c23"));
+                            }else{
+                                lblDiesel.setTextColor(Color.parseColor("#eb4034"));
+                            }
                             lblDiesel.setText(fuel.getFuelStatus());
                         }
                         btnJoin.setEnabled(true);
@@ -265,9 +405,9 @@ public class MainActivity extends AppCompatActivity {
     private void exitBeforePumpQueue(){
         Call<Queue> call = RetrofitClient.getInstance().getMyApi().updateQueue(new Queue(
                 user.getId(),
-                txtShedList.getText().toString(),
-                cmbVehicles.getSelectedItem().toString().split(",")[0],
-                new Date(),
+                joinedQueue.getShedName(),
+                joinedQueue.getVehicleType(),
+                joinedQueue.getArivalTime(),
                 new Date(),
                 false,
                 true,
@@ -334,15 +474,19 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<List<Vehicle>> call, Response<List<Vehicle>> response) {
                 List<Vehicle> vehicleList = response.body();
                 if(vehicleList != null){
-                    String[] arr = new String[vehicleList.size()];
+                    String[] arr = null;
                     if(vehicleList.size() != 0){
+                        arr = new String[vehicleList.size()];
+
                         for(int i=0; i< vehicleList.size(); i++){
                             arr[i] = vehicleList.get(i).getVehicleType()+", "+vehicleList.get(i).getVehicleNo();
                         }
-                        setCmbVehicleList(arr);
                     }else{
+                        arr = new String[1];
                         arr[0] = "No Vehicle Found";
                     }
+                    setCmbVehicleList(arr);
+
                 }else{
                     Toast.makeText(getApplicationContext(), "Not found Vehicles", Toast.LENGTH_LONG).show();
                 }
@@ -356,7 +500,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setCmbVehicleList(String[] arr){
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.select_dialog_item, arr);
+        vehicleList = arr;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, arr);
         cmbVehicles.setAdapter(adapter);
     }
 }

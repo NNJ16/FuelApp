@@ -8,13 +8,15 @@ public class Fuel {
    private Date arrivalTime;
    private Date finishedTime;
    private String fuelStatus;
+   private String fuelPrice;
 
-   public Fuel(String shedName, String fuelType, Date arrivalTime, Date finishedTime, String fuelStatus) {
+   public Fuel(String shedName, String fuelType, Date arrivalTime, Date finishedTime, String fuelStatus, String fuelPrice) {
       this.shedName = shedName;
       this.fuelType = fuelType;
       this.arrivalTime = arrivalTime;
       this.finishedTime = finishedTime;
       this.fuelStatus = fuelStatus;
+      this.fuelPrice = fuelPrice;
    }
 
    public String getShedName() {
@@ -35,5 +37,9 @@ public class Fuel {
 
    public String getFuelStatus() {
       return fuelStatus;
+   }
+
+   public String getFuelPrice() {
+      return fuelPrice;
    }
 }

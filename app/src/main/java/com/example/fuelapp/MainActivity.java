@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
     TextView lblUser;
     AutoCompleteTextView txtShedList;
     ImageView imgAdd, imgRemove;
-    TextView lblDiesel, lblPetrol, lblBike,lblCar, lblTruck, lblBus, lblVan, lblThreeWheel;
+    TextView lblDiesel, lblPetrol, lblBike,lblCar,
+            lblTruck, lblBus, lblVan, lblThreeWheel, lblAvgWait, lblDPrice,lblPPrice;
     User user;
     Spinner cmbVehicles;
     Button btnJoin, btnExitBP, btnExitAP;
@@ -72,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
         btnExitBP = findViewById(R.id.btnExitBP);
         imgAdd = findViewById(R.id.imgAdd);
         imgRemove = findViewById(R.id.imgRemove);
+        lblAvgWait = findViewById(R.id.lblAvgWait);
+        lblDPrice = findViewById(R.id.lblMDPrice);
+        lblPPrice = findViewById(R.id.lblMPPrice);
 
         btnJoin.setEnabled(false);
         btnExitAP.setEnabled(false);
@@ -96,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 if(event.getRawX() >= (txtShedList.getRight() - txtShedList.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                     getShedFuelStatus();
                     getQueueStatus();
+                    getAverageWaitingTime();
                     return true;
                 }
             }
@@ -301,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
                 if(fuelList.size() != 0){
                     for (Fuel fuel: fuelList) {
                         if(fuel.getFuelType().equalsIgnoreCase("Petrol")){
+                            lblPPrice.setText("LKR "+fuel.getFuelPrice());
                             if(Integer.parseInt(fuel.getFuelStatus()) >= 1000){
                                 lblPetrol.setTextColor(Color.parseColor("#045c23"));
                             }else{
@@ -308,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             lblPetrol.setText(fuel.getFuelStatus());
                         }else if(fuel.getFuelType().equalsIgnoreCase("Diesel")){
+                            lblDPrice.setText("LKR "+fuel.getFuelPrice());
                             if(Integer.parseInt(fuel.getFuelStatus()) >= 1000){
                                 lblDiesel.setTextColor(Color.parseColor("#045c23"));
                             }else{
@@ -331,6 +338,29 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Fuel>> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void getAverageWaitingTime(){
+        Call<String> call = RetrofitClient.getInstance().getMyApi().getAvgWaitingTime(new Shed("",txtShedList.getText().toString()));
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                String avg = response.body();
+                if(avg != null){
+                    lblAvgWait.setText(avg.substring(0,5)+"hrs");
+                    lblAvgWait.setTextColor(Color.parseColor("#32a852"));
+
+                }else{
+                    lblAvgWait.setText("0 hrs");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
                 Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_LONG).show();
             }
         });

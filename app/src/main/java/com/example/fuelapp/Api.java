@@ -41,17 +41,30 @@ public interface Api {
 
     //Create Shed
     @POST("shed/create")
-    Call<User> createShed(@Body Shed shed);
+    Call<Shed> createShed(@Body Shed shed);
+
+    //Create Shed
+    @POST("shed/delete")
+    Call<Shed> deleteShed(@Body Shed shed);
 
     //Find Shed
     @POST("shed/find")
-    Call<User> findShed(@Body Shed shed);
+    Call <List<Shed>> findShedsByOwner(@Body User user);
+
 
     //Fuel API
 
     //Create Shed
     @POST("fuel/create")
-    Call<Fuel> createFuel(@Body Shed shed);
+    Call<Fuel> createFuel(@Body Fuel fuel);
+
+    //Delete Shed
+    @POST("fuel/delete")
+    Call<Fuel> deleteFuel(@Body Fuel fuel);
+
+    //update Shed
+    @PUT("fuel/update")
+    Call<Fuel> updateFuel(@Body Fuel fuel);
 
     //Find Shed Fuel Status
     @POST("fuel/status")
@@ -70,6 +83,14 @@ public interface Api {
     //Update Queue Status
     @PUT("queue/update")
     Call<Queue> updateQueue(@Body Queue queue);
+
+    //Update Queue Status
+    @POST("queue/shed/users")
+    Call<List<Queue>> getVehiclesByShed(@Body Shed shed);
+
+    //Get queue average waiting time
+    @POST("queue/wait/average")
+    Call<String> getAvgWaitingTime(@Body Shed shed);
 
     //Vehicle API
 
